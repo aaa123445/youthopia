@@ -2,7 +2,7 @@ package com.shixun7zu.config;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.shixun7zu.entity.tool.ResponseResult;
-import com.shixun7zu.service.AccountService;
+import com.shixun7zu.service.AuthorizeService;
 import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +25,7 @@ public class SecurityConfiguration {
     private DataSource dataSource;
 
     @Resource
-    private AccountService accountService;
+    private AuthorizeService authorizeService;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder(){
@@ -37,18 +37,18 @@ public class SecurityConfiguration {
                                                    PersistentTokenRepository repository) throws Exception {
         return http
                 .authorizeHttpRequests(aut->{
-                    aut.requestMatchers("/api/account/**").permitAll();
+                    aut.requestMatchers("/api/auth/**").permitAll();
                     aut.anyRequest().authenticated();
                 })
                 .formLogin(conf->{
-                    conf.loginProcessingUrl("/api/account/login");
+                    conf.loginProcessingUrl("/api/auth/login");
                     conf.successHandler((request, response, authentication) ->{
                         response.setCharacterEncoding("utf-8");
                         response.getWriter().write(JSONObject.toJSONString(ResponseResult.okResult("登陆成功")));
                     });
                     conf.failureHandler((request, response, exception) -> {
                         response.setCharacterEncoding("utf-8");
-                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(401,exception.getMessage())));
+                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(501,exception.getMessage())));
                     });
                     conf.permitAll();
                 })
@@ -62,13 +62,11 @@ public class SecurityConfiguration {
                     conf.tokenValiditySeconds(3600 * 24 * 7);
                 })
                 .csrf(AbstractHttpConfigurer::disable)
-                .userDetailsService(accountService)
-                .exceptionHandling(conf->{
-                    conf.authenticationEntryPoint((request, response, authException) -> {
-                        response.setCharacterEncoding("utf-8");
-                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(302,"权限不足")));
-                    });
-                })
+                .userDetailsService(authorizeService)
+                .exceptionHandling(conf-> conf.authenticationEntryPoint((request, response, authException) -> {
+                    response.setCharacterEncoding("utf-8");
+                    response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(302,new Exception().toString())));
+                }))
                 .build();
     }
 
