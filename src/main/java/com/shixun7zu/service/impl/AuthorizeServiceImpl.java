@@ -4,9 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shixun7zu.entity.Account;
 import com.shixun7zu.entity.tool.ResponseResult;
+import com.shixun7zu.enums.AppHttpCodeEnum;
 import com.shixun7zu.mapper.AccountMapper;
 import com.shixun7zu.service.AuthorizeService;
 import jakarta.annotation.Resource;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.MailException;
@@ -24,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @Service
+@Slf4j
 public class AuthorizeServiceImpl extends ServiceImpl<AccountMapper, Account> implements AuthorizeService {
 
     @Value("${spring.mail.username}")
@@ -48,16 +52,27 @@ public class AuthorizeServiceImpl extends ServiceImpl<AccountMapper, Account> im
                 .build();
     }
 
+    /**
+     * 注册（携带验证码）
+     * @param username
+     * @param email
+     * @param password
+     * @param code
+     * @return
+     */
     @Override
-    public ResponseResult addAccount(Account account) {
-        if (accountMapper.selectList(new QueryWrapper<Account>().eq("username",account.getUsername())
-                .or()
-                .eq("email",account.getEmail())).size()>0) return ResponseResult.errorResult(500,"用户名已存在");
-        if ((account.getUsername() == null || account.getEmail() == null) &&
-        account.getPassword() == null) return ResponseResult.errorResult(500,"用户名密码不能为空");
-        account.setPassword(new BCryptPasswordEncoder().encode(account.getPassword()));
-        if (save(account)) return ResponseResult.okResult(200,"注册成功");
-        else return ResponseResult.errorResult(504,"未知错误请联系管理员");
+    public ResponseResult addAccount(String username, String email, String password, String code,String sessionId) {
+        String key="email:"+sessionId+":"+email;
+        if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(key))) {
+            String s = stringRedisTemplate.opsForValue().get(key);
+            if (s == null) return ResponseResult.errorResult(400,"验证码失效");
+            if (s.equals(code)) {
+                password = new BCryptPasswordEncoder().encode(password);
+                Account account = new Account(username,email,password);
+                if (save(account)) return ResponseResult.okResult(200,"注册成功");
+            }else return ResponseResult.errorResult(400,"验证码错误");
+        }
+        return ResponseResult.errorResult(505,"内部错误，请联系管理员");
     }
 
     /**
@@ -72,8 +87,10 @@ public class AuthorizeServiceImpl extends ServiceImpl<AccountMapper, Account> im
         if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(key))) {
             Long expire = Optional.ofNullable(stringRedisTemplate.getExpire(key, TimeUnit.SECONDS)).orElse(0L);
             if (expire > 120) return ResponseResult.errorResult(400,"请60秒后重试");
-
         }
+        //判断是否已注册
+        if (getOne(new QueryWrapper<Account>().eq("email", email)) != null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.USERNAME_EXIST);
         //生成验证码
         Random random = new Random();
         int code = random.nextInt(89999)+100000;
@@ -84,10 +101,11 @@ public class AuthorizeServiceImpl extends ServiceImpl<AccountMapper, Account> im
         mailMessage.setText("验证码(有效期3分钟):"+code);
         try {
             mailSender.send(mailMessage);
+            log.info("邮件发送成功");
             stringRedisTemplate.opsForValue().set(key,String.valueOf(code),3,TimeUnit.MINUTES);
             return ResponseResult.okResult();
         } catch (MailException e){
-            e.printStackTrace();
+            log.info(e.toString());
             return ResponseResult.errorResult(500,"发送失败，请联系管理员");
 
         }

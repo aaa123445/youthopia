@@ -6,6 +6,10 @@ import com.shixun7zu.entity.tool.ResponseResult;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface AuthorizeService extends IService<Account> , UserDetailsService {
-    ResponseResult addAccount(Account account);
+    ResponseResult addAccount(String username,
+                              String email,
+                              String password,
+                              String code,
+                              String sessionId);
     ResponseResult sendValidateEmail(String email,String sessionId);
 }

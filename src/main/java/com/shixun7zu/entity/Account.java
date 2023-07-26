@@ -2,6 +2,7 @@ package com.shixun7zu.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @TableName("user_account")
@@ -13,4 +14,10 @@ public class Account {
     private String username;
     private String password;
     private Integer del;
+
+    public Account(String email, String username, String password) {
+        this.email = email;
+        this.username = username;
+        this.password = password;
+    }
 }

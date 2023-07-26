@@ -44,7 +44,7 @@ public class SecurityConfiguration {
                     conf.loginProcessingUrl("/api/auth/login");
                     conf.successHandler((request, response, authentication) ->{
                         response.setCharacterEncoding("utf-8");
-                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.okResult("登陆成功")));
+                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.okResult(200,"登陆成功")));
                     });
                     conf.failureHandler((request, response, exception) -> {
                         response.setCharacterEncoding("utf-8");
@@ -65,7 +65,7 @@ public class SecurityConfiguration {
                 .userDetailsService(authorizeService)
                 .exceptionHandling(conf-> conf.authenticationEntryPoint((request, response, authException) -> {
                     response.setCharacterEncoding("utf-8");
-                    response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(302,new Exception().toString())));
+                    response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(302,"内部错误，请联系管理员")));
                 }))
                 .build();
     }
