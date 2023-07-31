@@ -1,6 +1,5 @@
 package com.shixun7zu.controller;
 
-import com.shixun7zu.entity.Account;
 import com.shixun7zu.entity.tool.ResponseResult;
 import com.shixun7zu.service.AuthorizeService;
 import jakarta.annotation.Resource;
@@ -10,6 +9,9 @@ import org.hibernate.validator.constraints.Length;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 校验Controller
+ */
 @Validated
 @RestController
 @RequestMapping("/api/auth")
@@ -22,21 +24,37 @@ public class AuthorizeController {
     private AuthorizeService authorizeService;
 
     @PostMapping("/valid-email")
-    public ResponseResult validateEmail(@Pattern (regexp = EMAIL_REGEX)
-                                            @RequestParam("email") String email,
-                                        HttpSession session){
-        return authorizeService.sendValidateEmail(email,session.getId());
+    public ResponseResult<?> validateEmail(@Pattern(regexp = EMAIL_REGEX)
+                                           @RequestParam("email") String email,
+                                           HttpSession session) {
+        return authorizeService.sendValidateEmail(email, session.getId());
     }
 
     @PostMapping("/register")
-    public ResponseResult addAccount(@Pattern(regexp = USERNAME_REGEX)
-                                         @Length(min = 2,max = 8)
-                                         @RequestParam("username") String username,
-                                     @RequestParam("email") String email,
-                                     @RequestParam("password") String password,
-                                     @Length(min = 6,max = 6)
-                                     @RequestParam("code") String code,
-                                     HttpSession session){
-        return authorizeService.addAccount(username,email,password,code,session.getId());
+    public ResponseResult<?> addAccount(@Pattern(regexp = USERNAME_REGEX)
+                                        @Length(min = 2, max = 8)
+                                        @RequestParam("username") String username,
+                                        @Pattern(regexp = EMAIL_REGEX)
+                                        @RequestParam("email") String email,
+                                        @RequestParam("password") String password,
+                                        @Length(min = 6, max = 6)
+                                        @RequestParam("code") String code,
+                                        HttpSession session) {
+        return authorizeService.addAccount(username, email, password, code, session.getId());
+    }
+
+    @PostMapping("/find-password")
+    public ResponseResult<?> findPassword(@Pattern(regexp = EMAIL_REGEX)
+                                          @RequestParam("email") String email,
+                                          @RequestParam("password") String password,
+                                          @RequestParam("code") String code,
+                                          HttpSession session) {
+        return authorizeService.findPassword(email, password, code, session.getId());
+    }
+
+    @CrossOrigin
+    @GetMapping("/test")
+    public String test() {
+        return "this is test page!";
     }
 }

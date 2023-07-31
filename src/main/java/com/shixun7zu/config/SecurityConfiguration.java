@@ -1,14 +1,19 @@
 package com.shixun7zu.config;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.shixun7zu.entity.Account;
 import com.shixun7zu.entity.tool.ResponseResult;
 import com.shixun7zu.service.AuthorizeService;
+import com.shixun7zu.uilit.JwtToken;
 import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
@@ -28,7 +33,7 @@ public class SecurityConfiguration {
     private AuthorizeService authorizeService;
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder(){
+    public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -36,43 +41,49 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    PersistentTokenRepository repository) throws Exception {
         return http
-                .authorizeHttpRequests(aut->{
+                .authorizeHttpRequests(aut -> {
                     aut.requestMatchers("/api/auth/**").permitAll();
+                    aut.requestMatchers(HttpMethod.GET,"/api/article/**").permitAll();
+                    aut.requestMatchers("/swagger-ui.html","/swagger-ui/**").permitAll();
+                    aut.requestMatchers("/api/article/article-images").permitAll();
                     aut.anyRequest().authenticated();
                 })
-                .formLogin(conf->{
+                .formLogin(conf -> {
                     conf.loginProcessingUrl("/api/auth/login");
-                    conf.successHandler((request, response, authentication) ->{
+                    conf.successHandler((request, response, authentication) -> {
+                        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
                         response.setCharacterEncoding("utf-8");
                         response.getWriter().write(JSONObject.toJSONString(ResponseResult.okResult(200,"登陆成功")));
+                        JwtToken.creatToken(user.getUsername());
                     });
                     conf.failureHandler((request, response, exception) -> {
                         response.setCharacterEncoding("utf-8");
-                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(501,exception.getMessage())));
+                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(501, exception.getMessage())));
                     });
                     conf.permitAll();
                 })
-                .logout(conf->{
+                .logout(conf -> {
                     conf.logoutUrl("/api/account/logout");
                     conf.permitAll();
                 })
-                .rememberMe(conf->{
+                .rememberMe(conf -> {
                     conf.rememberMeParameter("remember");
                     conf.tokenRepository(repository);
                     conf.tokenValiditySeconds(3600 * 24 * 7);
                 })
                 .csrf(AbstractHttpConfigurer::disable)
                 .userDetailsService(authorizeService)
-                .exceptionHandling(conf-> conf.authenticationEntryPoint((request, response, authException) -> {
-                    response.setCharacterEncoding("utf-8");
-                    response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(302,"内部错误，请联系管理员")));
+                .exceptionHandling(conf -> conf.authenticationEntryPoint((request, response, authException) -> {
+                    response.setCharacterEncoding("gbk");
+                    response.getWriter()
+                            .write(JSONObject.toJSONString(ResponseResult.errorResult(302, "内部错误，请联系管理员")));
                 }))
                 .build();
     }
 
     @Bean
-    public PersistentTokenRepository tokenRepository(){
-        JdbcTokenRepositoryImpl jdbcTokenRepository=new JdbcTokenRepositoryImpl();
+    public PersistentTokenRepository tokenRepository() {
+        JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
         jdbcTokenRepository.setDataSource(dataSource);
         jdbcTokenRepository.setCreateTableOnStartup(false);
         return jdbcTokenRepository;
