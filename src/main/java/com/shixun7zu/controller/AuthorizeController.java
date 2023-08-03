@@ -2,10 +2,13 @@ package com.shixun7zu.controller;
 
 import com.shixun7zu.entity.tool.ResponseResult;
 import com.shixun7zu.service.AuthorizeService;
+import com.shixun7zu.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,10 +21,13 @@ import org.springframework.web.bind.annotation.*;
 public class AuthorizeController {
 
     private final String EMAIL_REGEX = "^[A-Za-z0-9-._]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,6})$";
-    private final String USERNAME_REGEX = "^[a-zA-Z0-9_-]{4,16}$";
+    private final String USERNAME_REGEX = "^[a-zA-Z0-9_-]{2,16}$";
 
     @Resource
     private AuthorizeService authorizeService;
+
+    @Resource
+    private UserService userService;
 
     @PostMapping("/valid-email")
     public ResponseResult<?> validateEmail(@Pattern(regexp = EMAIL_REGEX)
@@ -52,9 +58,15 @@ public class AuthorizeController {
         return authorizeService.findPassword(email, password, code, session.getId());
     }
 
-    @CrossOrigin
+
     @GetMapping("/test")
     public String test() {
-        return "this is test page!";
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return "this is test page!"+user.getUsername();
+    }
+    @GetMapping("/get-avatar")
+    @ResponseBody
+    public ResponseResult<?> getAvatar(String text){
+        return userService.getAvatar(text);
     }
 }

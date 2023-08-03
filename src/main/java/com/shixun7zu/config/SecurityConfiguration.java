@@ -1,14 +1,15 @@
 package com.shixun7zu.config;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.shixun7zu.entity.Account;
 import com.shixun7zu.entity.tool.ResponseResult;
 import com.shixun7zu.service.AuthorizeService;
 import com.shixun7zu.uilit.JwtToken;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -18,12 +19,22 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CharacterEncodingFilter;
 
 import javax.sql.DataSource;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 
 @EnableWebSecurity
 @Configuration
+@Slf4j
 public class SecurityConfiguration {
 
     @Resource
@@ -31,6 +42,8 @@ public class SecurityConfiguration {
 
     @Resource
     private AuthorizeService authorizeService;
+
+
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -40,30 +53,47 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    PersistentTokenRepository repository) throws Exception {
+        //添加转码
+        CharacterEncodingFilter encodingFilter = new CharacterEncodingFilter();
+        encodingFilter.setEncoding("UTF-8");
+        encodingFilter.setForceEncoding(true);
+        http.addFilterBefore(encodingFilter, CsrfFilter.class);
+
         return http
                 .authorizeHttpRequests(aut -> {
                     aut.requestMatchers("/api/auth/**").permitAll();
                     aut.requestMatchers(HttpMethod.GET,"/api/article/**").permitAll();
-                    aut.requestMatchers("/swagger-ui.html","/swagger-ui/**").permitAll();
                     aut.requestMatchers("/api/article/article-images").permitAll();
                     aut.anyRequest().authenticated();
                 })
                 .formLogin(conf -> {
                     conf.loginProcessingUrl("/api/auth/login");
                     conf.successHandler((request, response, authentication) -> {
+                        System.out.println(Arrays.toString(request.getCookies()));
                         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                        response.setCharacterEncoding("utf-8");
-                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.okResult(200,"登陆成功")));
-                        JwtToken.creatToken(user.getUsername());
+                        log.info(user.getUsername()+":登陆成功"+new Date());
+                        request.setCharacterEncoding("UTF-8");
+                        response.setCharacterEncoding("UTF-8");
+                        String token = JwtToken.creatToken(user.getUsername());
+                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.okResult(200,"Login successful")));
                     });
                     conf.failureHandler((request, response, exception) -> {
-                        response.setCharacterEncoding("utf-8");
-                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(501, exception.getMessage())));
+                        request.setCharacterEncoding("UTF-8");
+                        response.setCharacterEncoding("UTF-8");
+                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(501, "Internal error, contact your administrator")));
                     });
                     conf.permitAll();
                 })
                 .logout(conf -> {
                     conf.logoutUrl("/api/account/logout");
+                    conf.logoutSuccessUrl(null);
+                    conf.invalidateHttpSession(true);
+                    conf.clearAuthentication(true);
+                    conf.logoutSuccessHandler((request, response, exception) -> {
+                        request.setCharacterEncoding("UTF-8");
+                        response.setCharacterEncoding("UTF-8");
+                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(200, "Logout successful")));
+                    });
                     conf.permitAll();
                 })
                 .rememberMe(conf -> {
@@ -74,10 +104,15 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .userDetailsService(authorizeService)
                 .exceptionHandling(conf -> conf.authenticationEntryPoint((request, response, authException) -> {
-                    response.setCharacterEncoding("gbk");
+                    request.setCharacterEncoding("UTF-8");
+                    response.setCharacterEncoding("UTF-8");
                     response.getWriter()
-                            .write(JSONObject.toJSONString(ResponseResult.errorResult(302, "内部错误，请联系管理员")));
+                            .write(JSONObject.toJSONString(ResponseResult.errorResult(302, "Internal error, contact your administrator")));
                 }))
+                .cors(conf->{
+//                    Customizer.withDefaults();
+                    conf.configurationSource(corsConfigurationSource());
+                })
                 .build();
     }
 
@@ -89,4 +124,16 @@ public class SecurityConfiguration {
         return jdbcTokenRepository;
     }
 
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedMethods(List.of("*"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setMaxAge(Duration.ofHours(1));
+        source.registerCorsConfiguration("/**",configuration);
+        return source;
+    }
 }

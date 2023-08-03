@@ -3,7 +3,9 @@ package com.shixun7zu.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
@@ -15,9 +17,29 @@ public class Account {
     private String email;
     private String username;
     private String password;
-    private Integer del;
+    //注册时间
     @TableField("create_time")
-    private Date creatTime;
+    private Date createTime;
+    //头像
+    private String avatar;
+    //昵称
+    private String nickname;
+    //简介
+    private String synopsis;
+    //性别
+    private String gender;
+    //生日
+    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd")
+    private Date birthday;
+    //粉丝数
+    @TableField("fans_count")
+    private Integer fansCount;
+    //关注数
+    @TableField("concern_count")
+    private Integer concernCount;
+    private String address;
+    private Integer del;
+
 
     public Account(String email, String username, String password) {
         this.email = email;

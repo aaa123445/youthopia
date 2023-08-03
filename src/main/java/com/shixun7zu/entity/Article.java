@@ -3,7 +3,9 @@ package com.shixun7zu.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+
 
 import java.util.Date;
 
@@ -25,7 +27,8 @@ public class Article {
     private String nickname;
     //创建时间
     @TableField("create_time")
-    private Date createTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private String createTime;
     //文章详细
     @TableField("article_detailed")
     private String articleDetailed;

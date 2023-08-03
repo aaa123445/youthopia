@@ -58,9 +58,9 @@ public class AuthorizeServiceImpl extends ServiceImpl<AccountMapper, Account> im
      * 注册（携带验证码）
      *
      * @param username 用户名
-     * @param email 邮箱
+     * @param email    邮箱
      * @param password 密码
-     * @param code 验证码
+     * @param code     验证码
      * @return ResponseResult
      */
     @Override
@@ -69,7 +69,8 @@ public class AuthorizeServiceImpl extends ServiceImpl<AccountMapper, Account> im
         //验证用户是否存在
         if (accountMapper.selectOne(new LambdaQueryWrapper<Account>()
                 .eq(Account::getUsername, username)
-                .eq(Account::getEmail,email)) != null)
+                .or()
+                .eq(Account::getEmail, email)) != null)
             return ResponseResult.errorResult(AppHttpCodeEnum.USERNAME_EXIST);
         //是否获取过验证码
         if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(key))) {
@@ -80,7 +81,7 @@ public class AuthorizeServiceImpl extends ServiceImpl<AccountMapper, Account> im
             if (s.equals(code)) {
                 password = new BCryptPasswordEncoder().encode(password);
                 Account account = new Account(email, username, password);
-                account.setCreatTime(new Date());
+                account.setCreateTime(new Date());
                 if (save(account)) return ResponseResult.okResult(200, "注册成功");
             } else return ResponseResult.errorResult(400, "验证码错误");
         }
@@ -121,10 +122,10 @@ public class AuthorizeServiceImpl extends ServiceImpl<AccountMapper, Account> im
     }
 
     @Override
-    public ResponseResult<?> findPassword(String email,String password, String code, String sessionId) {
+    public ResponseResult<?> findPassword(String email, String password, String code, String sessionId) {
         String key = "email:" + sessionId + ":" + email;
         if (accountMapper.selectOne(new LambdaQueryWrapper<Account>()
-                .eq(Account::getEmail,email)) == null) return ResponseResult.errorResult(500,"邮箱不存在");
+                .eq(Account::getEmail, email)) == null) return ResponseResult.errorResult(500, "邮箱不存在");
         //是否获取过验证码
         if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(key))) {
             String s = stringRedisTemplate.opsForValue().get(key);
@@ -134,11 +135,11 @@ public class AuthorizeServiceImpl extends ServiceImpl<AccountMapper, Account> im
             if (s.equals(code)) {
                 password = new BCryptPasswordEncoder().encode(password);
                 LambdaUpdateWrapper<Account> updateWrapper = new LambdaUpdateWrapper<>();
-                updateWrapper.eq(Account::getEmail,email)
-                        .set(Account::getPassword,password);
-                if (update(updateWrapper)) return ResponseResult.okResult(200,"修改成功");
+                updateWrapper.eq(Account::getEmail, email)
+                        .set(Account::getPassword, password);
+                if (update(updateWrapper)) return ResponseResult.okResult(200, "修改成功");
             } else return ResponseResult.errorResult(400, "验证码错误");
         }
-        return ResponseResult.errorResult(500,"错误");
+        return ResponseResult.errorResult(500, "错误");
     }
 }

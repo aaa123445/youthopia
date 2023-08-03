@@ -1,33 +1,23 @@
-package com.shixun7zu.entity;
+package com.shixun7zu.entity.vo;
+
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
 
 import java.util.Date;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
-/**
- * (UserInfo)表实体类
- *
- * @author Jc
- * @since 2023-07-27 17:17:55
- */
 @Data
-@TableName("user_info")
-public class UserInfo {
-    @TableId
-    private Integer id;
-    @TableField("account_id")
-    private Integer accountId;
-    private String username;
+public class UserInfoVo {
     //昵称
     private String nickname;
     //头像
     private String avatar;
     //简介
     private String synopsis;
+    //性别
+    private String gender;
     //生日
+    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd")
     private Date birthday;
     //粉丝数
     @TableField("fans_count")
@@ -40,6 +30,4 @@ public class UserInfo {
     private Date createTime;
     //地址
     private String address;
-
 }
-

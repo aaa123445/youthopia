@@ -12,8 +12,12 @@ import com.shixun7zu.entity.tool.ResponseResult;
  */
 public interface ArticleService extends IService<Article> {
 
-    ResponseResult<?> getArticleList(Integer num,Integer size,String type);
+    ResponseResult<?> getArticleList(Integer num,Integer size,Integer status);
 
     ResponseResult<?> addArticle(Article article);
+
+    ResponseResult<?> delArticleById(Integer id);
+
+    ResponseResult<?> getArticleByOwn(Integer num,Integer size);
 }
 
