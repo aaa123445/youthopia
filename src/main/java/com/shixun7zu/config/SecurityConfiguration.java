@@ -8,8 +8,6 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -61,9 +59,9 @@ public class SecurityConfiguration {
 
         return http
                 .authorizeHttpRequests(aut -> {
-                    aut.requestMatchers("/api/auth/**").permitAll();
-                    aut.requestMatchers(HttpMethod.GET,"/api/article/**").permitAll();
-                    aut.requestMatchers("/api/article/article-images").permitAll();
+                    aut.requestMatchers("/api/article/article-list",
+                            "/api/article/article-images",
+                            "/api/auth/**").permitAll();
                     aut.anyRequest().authenticated();
                 })
                 .formLogin(conf -> {
@@ -80,7 +78,7 @@ public class SecurityConfiguration {
                     conf.failureHandler((request, response, exception) -> {
                         request.setCharacterEncoding("UTF-8");
                         response.setCharacterEncoding("UTF-8");
-                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(501, "Internal error, contact your administrator")));
+                        response.getWriter().write(JSONObject.toJSONString(ResponseResult.errorResult(501, "username or password error")));
                     });
                     conf.permitAll();
                 })
@@ -107,7 +105,7 @@ public class SecurityConfiguration {
                     request.setCharacterEncoding("UTF-8");
                     response.setCharacterEncoding("UTF-8");
                     response.getWriter()
-                            .write(JSONObject.toJSONString(ResponseResult.errorResult(302, "Internal error, contact your administrator")));
+                            .write(JSONObject.toJSONString(ResponseResult.errorResult(302, "must login")));
                 }))
                 .cors(conf->{
 //                    Customizer.withDefaults();

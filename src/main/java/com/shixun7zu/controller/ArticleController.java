@@ -3,6 +3,7 @@ package com.shixun7zu.controller;
 import com.shixun7zu.entity.Article;
 import com.shixun7zu.entity.tool.ResponseResult;
 import com.shixun7zu.service.ArticleService;
+import com.shixun7zu.service.StartService;
 import com.shixun7zu.uilit.TencentCOSUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,9 @@ import org.springframework.web.multipart.MultipartFile;
 public class ArticleController {
     @Resource
     private ArticleService articleService;
+
+    @Resource
+    private StartService startService;
 
 
     @GetMapping("/article-list")
@@ -38,5 +42,19 @@ public class ArticleController {
         return articleService.addArticle(article);
     }
 
-
+    @GetMapping("/add-start")
+    @ResponseBody
+    public ResponseResult<?> addStart(Integer id) {
+        return articleService.addStart(id);
+    }
+    @GetMapping("/del-start")
+    @ResponseBody
+    public ResponseResult<?> delStart(Integer id) {
+        return articleService.delStart(id);
+    }
+    @GetMapping("/start-list")
+    @ResponseBody
+    public ResponseResult<?> getStartList(){
+        return startService.getStartList();
+    }
 }

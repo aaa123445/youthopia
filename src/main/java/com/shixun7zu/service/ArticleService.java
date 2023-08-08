@@ -19,5 +19,8 @@ public interface ArticleService extends IService<Article> {
     ResponseResult<?> delArticleById(Integer id);
 
     ResponseResult<?> getArticleByOwn(Integer num,Integer size);
+
+    ResponseResult<?> addStart(Integer id);
+    ResponseResult<?> delStart(Integer id);
 }
 
