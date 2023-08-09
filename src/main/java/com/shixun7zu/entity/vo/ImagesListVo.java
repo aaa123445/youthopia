@@ -5,11 +5,8 @@ import lombok.Data;
 
 import java.util.List;
 
-/**
- * 文章列表VO
- */
 @Data
-public class ArticleListVo {
+public class ImagesListVo {
     private Integer id;
     private Integer accountId;
     //头像
@@ -22,12 +19,11 @@ public class ArticleListVo {
     //文章详细
     private String articleDetailed;
     //文章图片
-    private String articleImages;
+    private List<String> articleImages;
     //转发数
     private Integer forwardsCount;
     //评论数
     private Integer commentsCount;
     //点赞数
     private Integer start;
-
 }

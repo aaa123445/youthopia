@@ -25,15 +25,15 @@ public class TencentCOSUtil {
 //    region: ap-chongqing
 //    photoBucket: chat-1317257102
     // COS的SecretId
-    private static final String secretId = "AKIDXXXXXXXXXXXX";
+    private static final String secretId = "AKIDysdDrcGj2JQJ0Xt6FG2dN8j5D5wlW9Ym";
     // COS的SecretKey
-    private static final String secretKey = "4wd6LK2TgplS4XXXXXXXt";
+    private static final String secretKey = "4wd6LK2TgplS4axLm24ub5C5kL0QbZKt";
     //文件上传后访问路径的根路径，后面要最佳文件名字与类型
-    private static final String rootSrc = "https://chaXXXXXXXX";
+    private static final String rootSrc = "https://chat-1317257102.cos.ap-chongqing.myqcloud.com/";
     //上传的存储桶的地域，可参考根路径https://qq-test-1303******.cos.地域.myqcloud.com,此参数在COS的后台能查询。
-    private static final String bucketAddr = "XXXXXing";
+    private static final String bucketAddr = "ap-chongqing";
     //存储桶的名字，是自己在存储空间自己创建的，我创建的名字是：qq-test-1303******
-    private static final String bucketName = "XXXXXX257102";
+    private static final String bucketName = "chat-1317257102";
  
     /**
      * 1.调用静态方法getCosClient()就会获得COSClient实例
@@ -75,7 +75,7 @@ public class TencentCOSUtil {
             //使用UUID工具  创建唯一名称，放置文件重名被覆盖，在拼接上上命令获取的文件类型
             String fileName = UUID.randomUUID() + fileType;
             // 指定文件上传到 COS 上的路径，即对象键。最终文件会传到存储桶名字中的images文件夹下的fileName名字
-            String key = "头像/"+fileName;
+            String key = "avatar/"+fileName;
 
             // 创建上传Object的Metadata
             ObjectMetadata objectMetadata = new ObjectMetadata();

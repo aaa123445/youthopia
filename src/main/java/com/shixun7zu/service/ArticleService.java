@@ -13,6 +13,7 @@ import com.shixun7zu.entity.tool.ResponseResult;
 public interface ArticleService extends IService<Article> {
 
     ResponseResult<?> getArticleList(Integer num,Integer size,Integer status);
+    ResponseResult<?> getArticleListAfterLogin(Integer num, Integer size, Integer status);
 
     ResponseResult<?> addArticle(Article article);
 

@@ -61,7 +61,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(aut -> {
                     aut.requestMatchers("/api/article/article-list",
                             "/api/article/article-images",
-                            "/api/auth/**").permitAll();
+                            "/api/auth/**",
+                            "/api/user/upload-avatar").permitAll();
                     aut.anyRequest().authenticated();
                 })
                 .formLogin(conf -> {

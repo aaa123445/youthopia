@@ -29,7 +29,8 @@ public class Account {
     //性别
     private String gender;
     //生日
-    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT+8")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date birthday;
     //粉丝数
     @TableField("fans_count")

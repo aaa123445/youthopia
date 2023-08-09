@@ -26,19 +26,25 @@ public class ArticleController {
 
     @GetMapping("/article-list")
     @ResponseBody
-    public ResponseResult<?> getArticleList(Integer num,Integer size,Integer status){
-        return articleService.getArticleList(num,size,status);
+    public ResponseResult<?> getArticleList(Integer num, Integer size, Integer status) {
+        return articleService.getArticleList(num, size, status);
+    }
+
+    @GetMapping("/article-list-after-login")
+    @ResponseBody
+    public ResponseResult<?> getArticleListAfterLogin(Integer num, Integer size, Integer status) {
+        return articleService.getArticleListAfterLogin(num, size, status);
     }
 
     @PostMapping("/article-images")
     @ResponseBody
-    public ResponseResult<?> uploadImages(MultipartFile file){
+    public ResponseResult<?> uploadImages(MultipartFile file) {
         return ResponseResult.okResult(TencentCOSUtil.upLoadImages(file));
     }
 
     @PostMapping("/add-article")
     @ResponseBody
-    public ResponseResult<?> addArticle(@RequestBody Article article){
+    public ResponseResult<?> addArticle(@RequestBody Article article) {
         return articleService.addArticle(article);
     }
 
@@ -47,14 +53,16 @@ public class ArticleController {
     public ResponseResult<?> addStart(Integer id) {
         return articleService.addStart(id);
     }
+
     @GetMapping("/del-start")
     @ResponseBody
     public ResponseResult<?> delStart(Integer id) {
         return articleService.delStart(id);
     }
+
     @GetMapping("/start-list")
     @ResponseBody
-    public ResponseResult<?> getStartList(){
+    public ResponseResult<?> getStartList() {
         return startService.getStartList();
     }
 }

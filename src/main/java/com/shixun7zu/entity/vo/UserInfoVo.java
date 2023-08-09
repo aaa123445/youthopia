@@ -3,6 +3,7 @@ package com.shixun7zu.entity.vo;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
@@ -17,7 +18,8 @@ public class UserInfoVo {
     //性别
     private String gender;
     //生日
-    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT+8")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date birthday;
     //粉丝数
     @TableField("fans_count")
@@ -26,6 +28,8 @@ public class UserInfoVo {
     @TableField("concern_count")
     private Integer concernCount;
     //注册时间
+    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT+8")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @TableField("create_time")
     private Date createTime;
     //地址

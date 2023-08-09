@@ -42,6 +42,7 @@ public class AuthorizeController {
                                         @RequestParam("username") String username,
                                         @Pattern(regexp = EMAIL_REGEX)
                                         @RequestParam("email") String email,
+                                        @Length(min = 6,max = 18)
                                         @RequestParam("password") String password,
                                         @Length(min = 6, max = 6)
                                         @RequestParam("code") String code,

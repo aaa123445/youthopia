@@ -9,7 +9,10 @@ import com.shixun7zu.entity.Account;
 import com.shixun7zu.entity.Article;
 import com.shixun7zu.entity.Start;
 import com.shixun7zu.entity.tool.ResponseResult;
+import com.shixun7zu.entity.vo.ArticleListResVo;
 import com.shixun7zu.entity.vo.ArticleListVo;
+import com.shixun7zu.entity.vo.ImagesListVo;
+import com.shixun7zu.entity.vo.PersonalArticleVo;
 import com.shixun7zu.enums.AppHttpCodeEnum;
 import com.shixun7zu.mapper.AccountMapper;
 import com.shixun7zu.mapper.ArticleMapper;
@@ -24,7 +27,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
 
 /**
  * (user_article)表服务实现类
@@ -61,10 +64,44 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 //        List<Article> articleList = list(queryWrapper);
 //        List<ArticleListVo> articleListVos = BeanCopyUtils.copyBeanList(articleList, ArticleListVo.class);
         IPage<Article> page = articleMapper.selectPage(new Page<>(num, size), queryWrapper);
-        return ResponseResult.okResult(BeanCopyUtils
-                .copyBeanList(page.getRecords(), ArticleListVo.class));
+        List<ArticleListVo> articleListVos = BeanCopyUtils.copyBeanList(page.getRecords(), ArticleListVo.class);
+        List<ImagesListVo> resList = new ArrayList<>();
+        articleListVos.forEach(articleListVo -> {
+            ImagesListVo imagesListVo = BeanCopyUtils.copyBean(articleListVo, ImagesListVo.class);
+            imagesListVo.setArticleImages(Arrays.asList(articleListVo.getArticleImages().split(",")));
+            if (imagesListVo.getArticleImages().get(0).equals("")) imagesListVo.setArticleImages(null);
+            resList.add(imagesListVo);
+        });
+        return ResponseResult.okResult(resList);
     }
-
+    /**
+     * 获取文章列表(登陆后)
+     */
+    @Override
+    public ResponseResult<?> getArticleListAfterLogin(Integer num, Integer size, Integer status) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = user.getUsername();
+        Account account = accountMapper.selectOne(new LambdaQueryWrapper<Account>()
+                .eq(Account::getUsername, username));
+        Integer id = account.getId();
+        LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Article::getStatus, status)
+                .orderByDesc(Article::getCreateTime);
+//        List<Article> articleList = list(queryWrapper);
+//        List<ArticleListVo> articleListVos = BeanCopyUtils.copyBeanList(articleList, ArticleListVo.class);
+        IPage<Article> page = articleMapper.selectPage(new Page<>(num, size), queryWrapper);
+        List<ArticleListResVo> resVoList = new ArrayList<>();
+        List<ArticleListVo> articleListVoList = BeanCopyUtils.copyBeanList(page.getRecords(), ArticleListVo.class);
+        articleListVoList.forEach(articleListVo -> {
+            ImagesListVo imagesListVo = BeanCopyUtils.copyBean(articleListVo, ImagesListVo.class);
+            imagesListVo.setArticleImages(Arrays.asList(articleListVo.getArticleImages().split(",")));
+            if (imagesListVo.getArticleImages().get(0).equals("")) imagesListVo.setArticleImages(null);
+            if (Objects.equals(articleListVo.getAccountId(), id))
+                resVoList.add(new ArticleListResVo(imagesListVo,true));
+            else resVoList.add(new ArticleListResVo(imagesListVo,false));
+        });
+        return ResponseResult.okResult(resVoList);
+    }
     /**
      * 发文章
      *
@@ -107,10 +144,21 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.inSql(Article::getAccountId,
                 "select id from user_account where username=" +
-                        "'" + user.getUsername() + "'");
+                        "'" + user.getUsername() + "'")
+                .orderByDesc(Article::getCreateTime);
         IPage<Article> page = articleMapper.selectPage(new Page<>(num, size), queryWrapper);
-        return ResponseResult.okResult(BeanCopyUtils
-                .copyBeanList(page.getRecords(), ArticleListVo.class));
+        List<ArticleListVo> articleListVos = BeanCopyUtils.copyBeanList(page.getRecords(), ArticleListVo.class);
+        PersonalArticleVo personalArticleVo = new PersonalArticleVo();
+        List<ImagesListVo> imagesListVoList = new ArrayList<>();
+        articleListVos.forEach(articleListVo -> {
+            ImagesListVo imagesListVo = BeanCopyUtils.copyBean(articleListVo, ImagesListVo.class);
+            imagesListVo.setArticleImages(Arrays.asList(articleListVo.getArticleImages().split(",")));
+            if (imagesListVo.getArticleImages().get(0).equals("")) imagesListVo.setArticleImages(null);
+            imagesListVoList.add(imagesListVo);
+        });
+        personalArticleVo.setArticleListVoList(imagesListVoList);
+        personalArticleVo.setCount(page.getTotal());
+        return ResponseResult.okResult(personalArticleVo);
     }
 
     @Override
