@@ -1,11 +1,10 @@
 package com.shixun7zu.controller;
 
-import com.shixun7zu.entity.Account;
-import com.shixun7zu.entity.tool.ResponseResult;
+import com.shixun7zu.entity.res.ResponseResult;
 import com.shixun7zu.entity.vo.UserInfoVo;
 import com.shixun7zu.service.ArticleService;
 import com.shixun7zu.service.UserService;
-import com.shixun7zu.uilit.TencentCOSUtil;
+import com.shixun7zu.util.TencentCOSUtil;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

@@ -1,6 +1,6 @@
 package com.shixun7zu.controller;
 
-import com.shixun7zu.entity.tool.ResponseResult;
+import com.shixun7zu.entity.res.ResponseResult;
 import com.shixun7zu.service.AuthorizeService;
 import com.shixun7zu.service.UserService;
 import jakarta.annotation.Resource;

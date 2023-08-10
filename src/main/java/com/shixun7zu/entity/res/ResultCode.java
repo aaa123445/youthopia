@@ -1,4 +1,4 @@
-package com.shixun7zu.entity.tool;
+package com.shixun7zu.entity.res;
 
 public interface ResultCode {
 

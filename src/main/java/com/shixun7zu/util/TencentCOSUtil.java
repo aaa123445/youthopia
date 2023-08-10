@@ -1,4 +1,4 @@
-package com.shixun7zu.uilit;
+package com.shixun7zu.util;
 
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;

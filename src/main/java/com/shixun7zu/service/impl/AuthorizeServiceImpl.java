@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shixun7zu.entity.Account;
-import com.shixun7zu.entity.tool.ResponseResult;
+import com.shixun7zu.entity.res.ResponseResult;
 import com.shixun7zu.enums.AppHttpCodeEnum;
 import com.shixun7zu.mapper.AccountMapper;
 import com.shixun7zu.service.AuthorizeService;

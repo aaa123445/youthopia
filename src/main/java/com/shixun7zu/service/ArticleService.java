@@ -2,7 +2,7 @@ package com.shixun7zu.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shixun7zu.entity.Article;
-import com.shixun7zu.entity.tool.ResponseResult;
+import com.shixun7zu.entity.res.ResponseResult;
 
 /**
  * (user_article)表服务接口
@@ -23,5 +23,7 @@ public interface ArticleService extends IService<Article> {
 
     ResponseResult<?> addStart(Integer id);
     ResponseResult<?> delStart(Integer id);
+
+    ResponseResult<?> search(String text);
 }
 

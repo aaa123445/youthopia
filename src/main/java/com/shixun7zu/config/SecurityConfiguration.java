@@ -1,9 +1,10 @@
 package com.shixun7zu.config;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.shixun7zu.entity.tool.ResponseResult;
+import com.shixun7zu.entity.res.ResponseResult;
 import com.shixun7zu.service.AuthorizeService;
-import com.shixun7zu.uilit.JwtToken;
+import com.shixun7zu.util.JwtToken;
+import com.shixun7zu.util.SecurityUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -11,8 +12,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
@@ -62,18 +61,18 @@ public class SecurityConfiguration {
                     aut.requestMatchers("/api/article/article-list",
                             "/api/article/article-images",
                             "/api/auth/**",
-                            "/api/user/upload-avatar").permitAll();
+                            "/api/user/upload-avatar",
+                            "/api/comment/get-list").permitAll();
                     aut.anyRequest().authenticated();
                 })
                 .formLogin(conf -> {
                     conf.loginProcessingUrl("/api/auth/login");
                     conf.successHandler((request, response, authentication) -> {
                         System.out.println(Arrays.toString(request.getCookies()));
-                        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                        log.info(user.getUsername()+":登陆成功"+new Date());
+                        log.info(SecurityUtils.getUsername()+":登陆成功"+new Date());
                         request.setCharacterEncoding("UTF-8");
                         response.setCharacterEncoding("UTF-8");
-                        String token = JwtToken.creatToken(user.getUsername());
+                        String token = JwtToken.creatToken(SecurityUtils.getUsername());
                         response.getWriter().write(JSONObject.toJSONString(ResponseResult.okResult(200,"Login successful")));
                     });
                     conf.failureHandler((request, response, exception) -> {

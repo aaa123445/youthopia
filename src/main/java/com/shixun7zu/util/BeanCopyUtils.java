@@ -1,4 +1,4 @@
-package com.shixun7zu.uilit;
+package com.shixun7zu.util;
 
 import org.springframework.beans.BeanUtils;
 

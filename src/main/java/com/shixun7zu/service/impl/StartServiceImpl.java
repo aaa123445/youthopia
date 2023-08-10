@@ -4,12 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shixun7zu.entity.Start;
-import com.shixun7zu.entity.tool.ResponseResult;
+import com.shixun7zu.entity.res.ResponseResult;
 import com.shixun7zu.mapper.StartMapper;
 import com.shixun7zu.service.StartService;
+import com.shixun7zu.util.SecurityUtils;
 import jakarta.annotation.Resource;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,9 +29,8 @@ public class StartServiceImpl extends ServiceImpl<StartMapper, Start> implements
 
     @Override
     public ResponseResult<?> getStartList() {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         LambdaQueryWrapper<Start> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Start::getUsername,user.getUsername())
+        queryWrapper.eq(Start::getUsername, SecurityUtils.getUsername())
                 .select(Start::getArticleId);
         List<Start> starts = startMapper.selectList(queryWrapper);
         List<Integer> res = new ArrayList<>();

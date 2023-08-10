@@ -1,4 +1,4 @@
-package com.shixun7zu.entity.tool;
+package com.shixun7zu.entity.res;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.shixun7zu.enums.AppHttpCodeEnum;

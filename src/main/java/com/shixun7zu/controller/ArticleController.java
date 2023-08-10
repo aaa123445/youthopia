@@ -1,10 +1,10 @@
 package com.shixun7zu.controller;
 
 import com.shixun7zu.entity.Article;
-import com.shixun7zu.entity.tool.ResponseResult;
+import com.shixun7zu.entity.res.ResponseResult;
 import com.shixun7zu.service.ArticleService;
 import com.shixun7zu.service.StartService;
-import com.shixun7zu.uilit.TencentCOSUtil;
+import com.shixun7zu.util.TencentCOSUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -64,5 +64,10 @@ public class ArticleController {
     @ResponseBody
     public ResponseResult<?> getStartList() {
         return startService.getStartList();
+    }
+    @GetMapping("/search")
+    @ResponseBody
+    public ResponseResult<?> search(String text){
+        return articleService.search(text);
     }
 }

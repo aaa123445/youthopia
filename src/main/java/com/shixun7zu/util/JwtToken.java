@@ -1,6 +1,5 @@
-package com.shixun7zu.uilit;
+package com.shixun7zu.util;
 
-import com.shixun7zu.entity.Account;
 import io.jsonwebtoken.*;
 import org.springframework.stereotype.Component;
 

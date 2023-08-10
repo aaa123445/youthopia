@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shixun7zu.entity.Account;
 import com.shixun7zu.entity.Article;
 import com.shixun7zu.entity.Start;
-import com.shixun7zu.entity.tool.ResponseResult;
+import com.shixun7zu.entity.res.ResponseResult;
 import com.shixun7zu.entity.vo.ArticleListResVo;
 import com.shixun7zu.entity.vo.ArticleListVo;
 import com.shixun7zu.entity.vo.ImagesListVo;
@@ -19,11 +19,10 @@ import com.shixun7zu.mapper.ArticleMapper;
 import com.shixun7zu.mapper.StartMapper;
 import com.shixun7zu.service.ArticleService;
 import com.shixun7zu.service.StartService;
-import com.shixun7zu.uilit.BeanCopyUtils;
+import com.shixun7zu.util.BeanCopyUtils;
+import com.shixun7zu.util.SecurityUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -79,8 +78,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
      */
     @Override
     public ResponseResult<?> getArticleListAfterLogin(Integer num, Integer size, Integer status) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = user.getUsername();
+        String username = SecurityUtils.getUsername();
         Account account = accountMapper.selectOne(new LambdaQueryWrapper<Account>()
                 .eq(Account::getUsername, username));
         Integer id = account.getId();
@@ -115,12 +113,11 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
      */
     @Override
     public ResponseResult<?> addArticle(Article article) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         LambdaQueryWrapper<Account> accountLambdaQueryWrapper = new LambdaQueryWrapper<>();
         accountLambdaQueryWrapper.select(Account::getAvatar,
                         Account::getNickname,
                         Account::getId)
-                .eq(Account::getUsername, user.getUsername());
+                .eq(Account::getUsername, SecurityUtils.getUsername());
         Account account = accountMapper.selectOne(accountLambdaQueryWrapper);
         article.setAccountId(account.getId());
         article.setAvatar(account.getAvatar());
@@ -140,11 +137,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public ResponseResult<?> getArticleByOwn(Integer num, Integer size) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.inSql(Article::getAccountId,
                 "select id from user_account where username=" +
-                        "'" + user.getUsername() + "'")
+                        "'" + SecurityUtils.getUsername() + "'")
                 .orderByDesc(Article::getCreateTime);
         IPage<Article> page = articleMapper.selectPage(new Page<>(num, size), queryWrapper);
         List<ArticleListVo> articleListVos = BeanCopyUtils.copyBeanList(page.getRecords(), ArticleListVo.class);
@@ -163,18 +159,17 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public ResponseResult<?> addStart(Integer id) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (startMapper.selectOne(new LambdaQueryWrapper<Start>()
                 .eq(Start::getArticleId, id)
-                .eq(Start::getUsername, user.getUsername())) != null)
+                .eq(Start::getUsername, SecurityUtils.getUsername())) != null)
             return ResponseResult.errorResult(500, "你点尼玛呢，要不要点十次嘛，傻逼！");
         LambdaUpdateWrapper<Article> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.setSql("start=start+1")
                 .eq(Article::getId, id);
         if (update(updateWrapper)) {
-            if (startMapper.getStart(user.getUsername(), id) != null)
-                startMapper.disDelStart(user.getUsername(), id);
-            else startMapper.insert(new Start(user.getUsername(), id));
+            if (startMapper.getStart(SecurityUtils.getUsername(), id) != null)
+                startMapper.disDelStart(SecurityUtils.getUsername(), id);
+            else startMapper.insert(new Start(SecurityUtils.getUsername(), id));
             return ResponseResult.okResult();
         }
         return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR);
@@ -182,19 +177,24 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public ResponseResult<?> delStart(Integer id) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (startMapper.selectOne(new LambdaQueryWrapper<Start>()
                 .eq(Start::getArticleId, id)
-                .eq(Start::getUsername, user.getUsername())) == null)
+                .eq(Start::getUsername, SecurityUtils.getUsername())) == null)
             return ResponseResult.errorResult(500, "会不会调接口啊，还没点赞呢你jb就想取消，傻逼！");
         LambdaUpdateWrapper<Article> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.setSql("start=start-1")
                 .eq(Article::getId, id);
         if (update(updateWrapper)) {
-            startService.delStart(user.getUsername(), id);
+            startService.delStart(SecurityUtils.getUsername(), id);
             return ResponseResult.okResult();
         }
         return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR);
+    }
+
+    @Override
+    public ResponseResult<?> search(String text) {
+
+        return null;
     }
 }
 
